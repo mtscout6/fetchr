@@ -103,6 +103,37 @@ describe('Server Fetcher', function () {
                 middleware = Fetcher.middleware({pathPrefix: '/api'});
             middleware(req, res, next);
         });
+        it('should respond to GET api request with query string params', function (done) {
+            var operation = 'read',
+                params = {
+                    uuids: ['cd7240d6-aeed-3fed-b63c-d7e99e21ca17', 'cd7240d6-aeed-3fed-b63c-d7e99e21ca17'],
+                    id: 'asdf'
+                },
+                req = {
+                    method: 'GET',
+                    path: '/resource/' + mockFetcher.name + '?' + qs.stringify(params)
+                    //path: '/resource/' + mockFetcher.name + ';?' + qs.stringify(params)
+                },
+                res = {
+                    json: function(response) {
+                        expect(response).to.exist;
+                        expect(response).to.not.be.empty;
+                        expect(response).to.contain.keys(operation, 'args');
+                        expect(response[operation]).to.equal('success');
+                        expect(response.args).to.contain.keys('params');
+                        expect(response.args.params).to.deep.equal(params);
+                        done();
+                    },
+                    send: function (code) {
+                        console.log('Not Expected: middleware responded with', code);
+                    }
+                },
+                next = function () {
+                    console.log('Not Expected: middleware skipped request');
+                },
+                middleware = Fetcher.middleware({pathPrefix: '/api'});
+            middleware(req, res, next);
+        });
     });
 
     describe('#CRUD', function () {
