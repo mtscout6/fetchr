@@ -119,6 +119,11 @@ var OP_READ = 'read',
                         meta = meta || {};
                         var responseObj = {};
                         responseObj[DEFAULT_GUID] = {data: data};
+
+                        if (meta.headers) {
+                            res.set(meta.headers);
+                        }
+
                         res.status(meta.statusCode || 200).json(responseObj);
                     }
                 };
