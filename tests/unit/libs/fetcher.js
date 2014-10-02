@@ -175,6 +175,72 @@ describe('Server Fetcher', function () {
                 expect(statusCodeSet).to.be.true;
             });
 
+            it('should respond to POST api request with custom headers', function (done) {
+                var operation = 'create',
+                    statusCodeSet = false,
+                    headersSet = false,
+                    headers = {
+                        Header1: 'value1',
+                        Header2: 'value2'
+                    },
+                    req = {
+                        method: 'POST',
+                        path: '/resource/' + mockFetcher.name,
+                        body: {
+                            requests: {
+                                g0: {
+                                    resource: mockFetcher.name,
+                                    operation: operation,
+                                    params: {
+                                        uuids: ['cd7240d6-aeed-3fed-b63c-d7e99e21ca17', 'cd7240d6-aeed-3fed-b63c-d7e99e21ca17'],
+                                        id: 'asdf',
+                                    }
+                                }
+                            },
+                            context: {
+                                site: '',
+                                devide: ''
+                            }
+                        }
+                    },
+                    res = {
+                        json: function(response) {
+                            expect(response).to.exist;
+                            expect(response).to.not.be.empty;
+                            var data = response.g0.data;
+                            expect(data).to.contain.keys('operation', 'args');
+                            expect(data.operation).to.equal('create');
+                            expect(data.args).to.contain.keys('params');
+                            expect(data.args.params).to.equal(req.body.requests.g0.params);
+                            done();
+                        },
+                        set: function(headers) {
+                            expect(headers).to.equal(headers);
+                            headersSet = true;
+                        },
+                        status: function(code) {
+                            expect(code).to.equal(200);
+                            statusCodeSet = true;
+                            return this;
+                        },
+                        send: function (code) {
+                            console.log('Not Expected: middleware responded with', code);
+                        }
+                    },
+                    next = function () {
+                        console.log('Not Expected: middleware skipped request');
+                    },
+                    middleware = Fetcher.middleware({pathPrefix: '/api'});
+
+                mockFetcher.meta = {
+                    headers: headers
+                };
+
+                middleware(req, res, next);
+                expect(statusCodeSet).to.be.true;
+                expect(headersSet).to.be.true;
+            });
+
             var makePostApiErrorTest = function(params, expStatusCode, expMessage) {
                 return function(done) {
                     var operation = 'create',

@@ -86,6 +86,11 @@ var OP_READ = 'read',
                             return;
                         }
                         meta = meta || {};
+
+                        if (meta.headers) {
+                            res.set(meta.headers);
+                        }
+
                         res.status(meta.statusCode || 200).json(data);
                     }
                 };
